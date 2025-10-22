@@ -1,0 +1,2882 @@
+// --- START OF FILE: index.tsx ---
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}
+// --- END OF FILE: index.tsx ---
+
+
+
+// --- START OF FILE: metadata.json ---
+{
+  "name": "Ideas",
+  "description": "A web application to discover, share, and manage high-quality ideas and prompts for various development platforms. Users can browse, favorite, and submit prompts, while an admin panel allows for moderation and review.",
+  "requestFramePermissions": []
+}
+// --- END OF FILE: metadata.json ---
+
+
+
+// --- START OF FILE: index.html ---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ideas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.546.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.25.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.4.0/"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-100">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
+// --- END OF FILE: index.html ---
+
+
+
+// --- START OF FILE: types.ts ---
+export interface Prompt {
+  id: string;
+  title: string;
+  desc: string;
+  category: string;
+  text: string;
+  rating: number;
+  author: string;
+  authorId?: string;
+  image: string;
+  approved: boolean;
+  createdAt?: any; // To allow for Firestore ServerTimestamp
+}
+
+export type Language = 'en' | 'hi';
+export type Mode = 'select' | 'user' | 'admin';
+export type UserScreen = 'home' | 'fav' | 'add' | 'myPrompts' | 'settings' | 'profile' | 'assistant' | string; // string for detail view
+export type AdminScreen = 'dashboard' | 'pending' | 'approved' | 'analytics' | 'add';
+
+export interface Translations {
+  [key: string]: {
+    [key: string]: string;
+  };
+}
+// --- END OF FILE: types.ts ---
+
+
+
+// --- START OF FILE: constants.ts ---
+import type { Translations } from './types';
+
+export const CATEGORIES = ['flutter', 'web', 'android', 'game', 'ios'];
+
+export const TRANSLATIONS: Translations = {
+  en: {
+    home: 'Home',
+    favorites: 'Favorites',
+    add: 'Add',
+    settings: 'Settings',
+    my_prompts: 'My Prompts',
+    approve: 'Approve',
+    reject: 'Reject',
+    copy: 'Copy',
+    admin: 'Admin',
+    back: 'Back',
+    copied: 'Copied!',
+    submit: 'Submit',
+    generate_with_ai: 'Generate with AI',
+    generating: 'Generating...',
+    logout: 'Logout',
+    language: 'Language',
+    user_app: 'User App',
+    admin_panel: 'Admin Panel',
+    search_prompts: 'Search prompts...',
+    all: 'All',
+    view: 'View',
+    submit_prompt: 'Submit Prompt',
+    title: 'Title',
+    short_description: 'Short Description',
+    category: 'Category',
+    icon: 'Icon',
+    prompt_text: 'Prompt Text',
+    no_favorites: "You haven't favorited any prompts yet.",
+    approved_status: 'Approved',
+    pending_status: 'Pending',
+    no_prompts_submitted: "You haven't submitted any prompts yet.",
+    click_add_to_share: "Click the 'Add' button below to share your first prompt!",
+    my_prompts_count: 'My Prompts ({count})',
+    logged_in_as: 'Logged in as',
+    my_profile: 'My Profile',
+    view_your_stats: 'View your stats and account info',
+    rate_this_idea: 'Rate this Idea',
+    your_rating: 'Your rating: {rating}',
+    loading_rating: 'Loading your previous rating...',
+    edit_profile: 'Edit Profile',
+    display_name: 'Display Name',
+    save_changes: 'Save Changes',
+    saving: 'Saving...',
+    welcome_back: 'Welcome Back!',
+    create_account: 'Create Account',
+    sign_in: 'Sign In',
+    sign_up: 'Sign Up',
+    processing: 'Processing...',
+    or: 'OR',
+    sign_in_with_google: 'Sign in with Google',
+    need_account: 'Need an account? Sign Up',
+    have_account: 'Already have an account? Sign In',
+    achievements: 'Achievements',
+    refer_a_friend: 'Refer a Friend',
+    share_referral: 'Share this link with your friends to invite them to the app!',
+    prompts_submitted: 'Prompts Submitted',
+    member_since: 'Member since {date}',
+    ach_first_steps: 'First Steps',
+    ach_first_steps_desc: 'Submit your very first prompt!',
+    ach_contributor: 'Contributor',
+    ach_contributor_desc: 'Submit 5 prompts.',
+    ach_prolific: 'Prolific',
+    ach_prolific_desc: 'Submit 10 or more prompts.',
+    ach_curator: 'Curator',
+    ach_curator_desc: 'Favorite 5 prompts.',
+    ach_super_fan: 'Super Fan',
+    ach_super_fan_desc: 'Favorite 15 or more prompts.',
+    ach_joined: 'Joined!',
+    ach_joined_desc: 'Welcome to the community!',
+    assistant: 'Assistant',
+    ask_anything_dev: 'Ask about app development...',
+    thinking: 'Thinking...',
+    welcome_assistant: 'Hello! How can I help you with app development today?',
+  },
+  hi: {
+    home: 'होम',
+    favorites: 'पसंदीदा',
+    add: 'जोड़ें',
+    settings: 'सेटिंग्स',
+    my_prompts: 'मेरे प्रॉम्प्ट',
+    approve: 'मंजूर',
+    reject: 'अस्वीकार',
+    copy: 'कॉपी',
+    admin: 'एडमिन',
+    back: 'वापस',
+    copied: 'कॉपी किया गया!',
+    submit: 'सबमिट करें',
+    generate_with_ai: 'एआई से उत्पन्न करें',
+    generating: 'उत्पन्न हो रहा है...',
+    logout: 'लॉग आउट',
+    language: 'भाषा',
+    user_app: 'यूज़र ऐप',
+    admin_panel: 'एडमिन पैनल',
+    search_prompts: 'प्रॉम्प्ट खोजें...',
+    all: 'सभी',
+    view: 'देखें',
+    submit_prompt: 'प्रॉम्प्ट सबमिट करें',
+    title: 'शीर्षक',
+    short_description: 'संक्षिप्त विवरण',
+    category: 'श्रेणी',
+    icon: 'आइकन',
+    prompt_text: 'प्रॉम्प्ट टेक्स्ट',
+    no_favorites: 'आपने अभी तक कोई प्रॉम्प्ट पसंदीदा नहीं किया है।',
+    approved_status: 'स्वीकृत',
+    pending_status: 'लंबित',
+    no_prompts_submitted: 'आपने अभी तक कोई प्रॉMPT सबमिट नहीं किया है।',
+    click_add_to_share: "अपना पहला प्रॉम्प्ट साझा करने के लिए नीचे 'जोड़ें' बटन पर क्लिक करें!",
+    my_prompts_count: 'मेरे प्रॉम्प्ट ({count})',
+    logged_in_as: 'इस रूप में लॉग इन हैं',
+    my_profile: 'मेरी प्रोफ़ाइल',
+    view_your_stats: 'अपने आँकड़े और खाते की जानकारी देखें',
+    rate_this_idea: 'इस आइडिया को रेट करें',
+    your_rating: 'आपकी रेटिंग: {rating}',
+    loading_rating: 'आपकी पिछली रेटिंग लोड हो रही है...',
+    edit_profile: 'प्रोफ़ाइल संपादित करें',
+    display_name: 'प्रदर्शित नाम',
+    save_changes: 'बदलाव सहेजें',
+    saving: 'सहेज रहा है...',
+    welcome_back: 'वापसी पर स्वागत है!',
+    create_account: 'खाता बनाएं',
+    sign_in: 'साइन इन करें',
+    sign_up: 'साइन अप करें',
+    processing: 'प्रोसेस हो रहा है...',
+    or: 'या',
+    sign_in_with_google: 'Google से साइन इन करें',
+    need_account: 'खाते की आवश्यकता है? साइन अप करें',
+    have_account: 'पहले से ही एक खाता है? साइन इन करें',
+    achievements: 'उपलब्धियां',
+    refer_a_friend: 'एक दोस्त को रेफर करें',
+    share_referral: 'इस ऐप में अपने दोस्तों को आमंत्रित करने के लिए यह लिंक साझा करें!',
+    prompts_submitted: 'प्रॉम्प्ट सबमिट किए गए',
+    member_since: 'सदस्य जबसे {date}',
+    ach_first_steps: 'पहला कदम',
+    ach_first_steps_desc: 'अपना पहला प्रॉम्प्ट सबमिट करें!',
+    ach_contributor: 'योगदानकर्ता',
+    ach_contributor_desc: '5 प्रॉम्प्ट सबमिट करें।',
+    ach_prolific: 'प्रचुर',
+    ach_prolific_desc: '10 या अधिक प्रॉम्प्ट सबमिट करें।',
+    ach_curator: 'क्यूरेटर',
+    ach_curator_desc: '5 प्रॉम्प्ट पसंदीदा करें।',
+    ach_super_fan: 'सुपर फैन',
+    ach_super_fan_desc: '15 या अधिक प्रॉम्प्ट पसंदीदा करें।',
+    ach_joined: 'शामिल हुए!',
+    ach_joined_desc: 'समुदाय में आपका स्वागत है!',
+    assistant: 'सहायक',
+    ask_anything_dev: 'ऐप डेवलपमेंट के बारे में पूछें...',
+    thinking: 'सोच रहा है...',
+    welcome_assistant: 'नमस्ते! मैं आज ऐप डेवलपमेंट में आपकी कैसे मदद कर सकता हूँ?',
+  }
+};
+
+// List of authorized admin User IDs
+export const ADMIN_UIDS = ['ZVBsDz8tTdXOLoElAofVwBGeRMj1', 'osjVLYCSdvQaa8jZxYPbY7tracH2'];
+// --- END OF FILE: constants.ts ---
+
+
+
+// --- START OF FILE: services/geminiService.ts ---
+import { GoogleGenAI, Type } from "@google/genai";
+import type { Prompt } from '../types';
+
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+
+export const generatePrompt = async (category: string): Promise<Partial<Prompt>> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Generate a creative and detailed programming prompt for a ${category} project. The prompt should be suitable for an intermediate developer. Provide a title, a short description (desc), and the full prompt text.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: {
+              type: Type.STRING,
+              description: "A short, catchy title for the programming project prompt."
+            },
+            desc: {
+              type: Type.STRING,
+              description: "A one-sentence description of the project."
+            },
+            text: {
+              type: Type.STRING,
+              description: "The full, detailed text of the prompt, explaining the project requirements, features, and potential technologies."
+            }
+          },
+          required: ["title", "desc", "text"],
+        },
+      },
+    });
+
+    const jsonString = response.text.trim();
+    const generatedData = JSON.parse(jsonString);
+
+    return {
+      title: generatedData.title,
+      desc: generatedData.desc,
+      text: generatedData.text,
+    };
+  } catch (error) {
+    console.error("Error generating prompt with Gemini:", error);
+    throw new Error("Failed to generate prompt. Please try again.");
+  }
+};
+// --- END OF FILE: services/geminiService.ts ---
+
+
+
+// --- START OF FILE: App.tsx ---
+import React, { useState, useEffect } from 'react';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from './services/firebase';
+import UserApp from './components/user/UserApp';
+import AdminApp from './components/admin/AdminApp';
+import UserLoginScreen from './components/user/UserLoginScreen';
+import { TRANSLATIONS, ADMIN_UIDS } from './constants';
+import type { Language } from './types';
+
+export default function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [lang, setLang] = useState<Language>('en');
+  const t = TRANSLATIONS[lang];
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        setIsAdmin(ADMIN_UIDS.includes(currentUser.uid));
+      } else {
+        setIsAdmin(false);
+      }
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p>Authenticating...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <UserLoginScreen />;
+  }
+
+  if (isAdmin) {
+    return <AdminApp lang={lang} setLang={setLang} t={t} />;
+  } else {
+    return <UserApp lang={lang} setLang={setLang} t={t} />;
+  }
+}
+// --- END OF FILE: App.tsx ---
+
+
+
+// --- START OF FILE: components/SelectModeScreen.tsx ---
+import React from 'react';
+import type { Language, Mode } from '../types';
+import { TRANSLATIONS } from '../constants';
+
+interface SelectModeScreenProps {
+  setMode: (mode: Mode) => void;
+  lang: Language;
+  setLang: (lang: Language) => void;
+}
+
+const SelectModeScreen: React.FC<SelectModeScreenProps> = ({ setMode, lang, setLang }) => {
+  const t = TRANSLATIONS[lang];
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center p-4">
+      <div className="text-center w-full max-w-md">
+        <h1 className="text-5xl md:text-6xl font-bold text-white mb-8 drop-shadow-lg">💡 Ideas</h1>
+        <div className="grid grid-cols-1 gap-4">
+          <button
+            onClick={() => setMode('user')}
+            className="bg-white/90 text-purple-700 font-bold text-lg py-4 px-6 rounded-xl shadow-lg hover:bg-white transition-transform transform hover:scale-105"
+          >
+            {t.user_app}
+          </button>
+          <button
+            onClick={() => setMode('admin')}
+            className="bg-black/30 text-white font-bold text-lg py-4 px-6 rounded-xl shadow-lg hover:bg-black/40 transition-transform transform hover:scale-105"
+          >
+            {t.admin_panel}
+          </button>
+        </div>
+        <div className="mt-8">
+            <select value={lang} onChange={(e) => setLang(e.target.value as Language)} className="bg-transparent text-white border-2 border-white/50 rounded-lg px-3 py-1 font-semibold focus:outline-none focus:ring-2 focus:ring-white/80">
+                <option value="en" style={{color: 'black'}}>English</option>
+                <option value="hi" style={{color: 'black'}}>हिंदी</option>
+            </select>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SelectModeScreen;
+// --- END OF FILE: components/SelectModeScreen.tsx ---
+
+
+
+// --- START OF FILE: components/common/BottomNav.tsx ---
+import React from 'react';
+import type { UserScreen } from '../../types';
+
+interface BottomNavProps {
+  screen: UserScreen;
+  setScreen: (screen: UserScreen) => void;
+  t: { [key: string]: string };
+}
+
+const NavItem: React.FC<{ icon: string; label: string; isActive: boolean; onClick: () => void }> = ({ icon, label, isActive, onClick }) => (
+  <button 
+    onClick={onClick} 
+    className={`flex flex-col items-center justify-center text-xs font-bold transition-colors duration-200 flex-1 min-w-0 py-1 ${isActive ? 'text-blue-600' : 'text-gray-500 hover:text-blue-500'}`}
+  >
+    <span className={`text-2xl transition-transform duration-200 mb-0.5 ${isActive ? 'scale-110' : ''}`}>{icon}</span>
+    <span className="leading-tight truncate">{label}</span>
+  </button>
+);
+
+const BottomNav: React.FC<BottomNavProps> = ({ screen, setScreen, t }) => {
+  const navItems = [
+    { id: 'home', icon: '🏠', label: t.home },
+    { id: 'fav', icon: '❤️', label: t.favorites },
+    { id: 'add', icon: '➕', label: t.add },
+    { id: 'assistant', icon: '🤖', label: t.assistant },
+    { id: 'myPrompts', icon: '👤', label: t.my_prompts },
+    { id: 'settings', icon: '⚙️', label: t.settings },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t shadow-lg z-50">
+      <div className="max-w-6xl mx-auto flex justify-around">
+        {navItems.map(item => (
+          <NavItem 
+            key={item.id}
+            icon={item.icon}
+            label={item.label}
+            isActive={screen === item.id}
+            onClick={() => setScreen(item.id as UserScreen)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default BottomNav;
+// --- END OF FILE: components/common/BottomNav.tsx ---
+
+
+
+// --- START OF FILE: components/user/UserApp.tsx ---
+import React, { useState, useEffect } from 'react';
+import { collection, onSnapshot, addDoc, serverTimestamp, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy, getDocs, where } from 'firebase/firestore';
+import { User, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
+import { Star, X } from 'lucide-react';
+import { db, auth } from '../../services/firebase';
+import HomeScreen from './HomeScreen';
+import FavoritesScreen from './FavoritesScreen';
+import AddPromptScreen from './AddPromptScreen';
+import SettingsScreen from './SettingsScreen';
+import DetailScreen from './DetailScreen';
+import MyPromptsScreen from './MyPromptsScreen';
+import BottomNav from '../common/BottomNav';
+import UserLoginScreen from './UserLoginScreen';
+import UserProfileScreen from './UserProfileScreen';
+import EditPromptScreen from './EditPromptScreen';
+import AssistantScreen from './AssistantScreen';
+import type { Prompt, Language, UserScreen } from '../../types';
+
+// Rating Modal Component
+interface RatingModalProps {
+  prompt: Prompt;
+  onClose: () => void;
+  onRatePrompt: (promptId: string, rating: number) => void;
+}
+
+const RatingModal: React.FC<RatingModalProps> = ({ prompt, onClose, onRatePrompt }) => {
+  const [userRating, setUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [loadingRating, setLoadingRating] = useState(true);
+  
+  useEffect(() => {
+    const fetchUserRating = async () => {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setLoadingRating(false);
+        return;
+      }
+      try {
+        const ratingDocRef = doc(db, 'prompts', prompt.id, 'ratings', currentUser.uid);
+        const docSnap = await getDoc(ratingDocRef);
+        if (docSnap.exists()) {
+          setUserRating(docSnap.data().rating);
+        }
+      } catch (error) {
+        console.error("Error fetching user rating:", error);
+      } finally {
+        setLoadingRating(false);
+      }
+    };
+
+    fetchUserRating();
+  }, [prompt.id]);
+  
+  const handleRatingClick = (newRating: number) => {
+    setUserRating(newRating);
+    onRatePrompt(prompt.id, newRating);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative" onClick={(e) => e.stopPropagation()} style={{ animation: 'fade-in-up 0.3s ease-out forwards' }}>
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <X size={24} />
+        </button>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Rate this Idea</h2>
+        <p className="text-gray-600 mb-6 truncate">{prompt.title}</p>
+        {loadingRating ? (
+          <div className="h-12 flex items-center justify-center"><p className="text-sm text-gray-500">Loading your previous rating...</p></div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button key={star} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} onClick={() => handleRatingClick(star)} aria-label={`Rate ${star} stars`}>
+                  <Star size={40} className={`cursor-pointer transition-all duration-150 transform hover:scale-110 ${(hoverRating || userRating) >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+                </button>
+              ))}
+            </div>
+            {userRating > 0 && <p className="text-sm text-gray-600 mt-4">Your rating: {userRating} star{userRating > 1 ? 's' : ''}</p>}
+          </div>
+        )}
+      </div>
+      <style>{`@keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+    </div>
+  );
+};
+
+// Edit Profile Modal Component
+interface EditProfileModalProps {
+    user: User;
+    onClose: () => void;
+    onUpdateProfile: (displayName: string) => Promise<void>;
+}
+
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClose, onUpdateProfile }) => {
+    const [displayName, setDisplayName] = useState(user.displayName || '');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        await onUpdateProfile(displayName);
+        setLoading(false);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative" onClick={(e) => e.stopPropagation()} style={{ animation: 'fade-in-up 0.3s ease-out forwards' }}>
+                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                    <X size={24} />
+                </button>
+                <h2 className="text-xl font-bold text-gray-800 mb-6">Edit Profile</h2>
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="displayName">
+                            Display Name
+                        </label>
+                        <input
+                            id="displayName"
+                            type="text"
+                            value={displayName}
+                            onChange={(e) => setDisplayName(e.target.value)}
+                            placeholder="Enter your name"
+                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors disabled:bg-gray-400">
+                        {loading ? 'Saving...' : 'Save Changes'}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+// Logout Confirmation Modal
+const LogoutConfirmationModal: React.FC<{ onConfirm: () => void; onCancel: () => void; }> = ({ onConfirm, onCancel }) => {
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative" style={{ animation: 'fade-in-up 0.3s ease-out forwards' }}>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Confirm Logout</h2>
+        <p className="text-gray-600 mb-6">Are you sure you want to log out?</p>
+        <div className="flex gap-4">
+          <button onClick={onCancel} className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-300 transition-colors">
+            Cancel
+          </button>
+          <button onClick={onConfirm} className="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition-colors">
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+interface UserAppProps {
+  lang: Language;
+  setLang: (lang: Language) => void;
+  t: { [key: string]: string };
+}
+
+const UserApp: React.FC<UserAppProps> = ({ lang, setLang, t }) => {
+  const [screen, setScreen] = useState<UserScreen>('home');
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [myPrompts, setMyPrompts] = useState<Prompt[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [ratingModalPrompt, setRatingModalPrompt] = useState<Prompt | null>(null);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const q = query(collection(db, 'prompts'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const promptsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Prompt));
+      setPrompts(promptsData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching prompts: ", error);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      const userDocRef = doc(db, 'users', user.uid);
+      const unsubFavorites = onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setFavorites(docSnap.data().favorites || []);
+        } else {
+          setDoc(userDocRef, { email: user.email, favorites: [] });
+          setFavorites([]);
+        }
+      });
+
+      const myPromptsQuery = query(collection(db, 'prompts'), where('authorId', '==', user.uid));
+      const unsubMyPrompts = onSnapshot(myPromptsQuery, (querySnapshot) => {
+        const userPromptsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Prompt));
+        userPromptsData.sort((a, b) => {
+            const dateA = a.createdAt?.toDate()?.getTime() || 0;
+            const dateB = b.createdAt?.toDate()?.getTime() || 0;
+            return dateB - dateA;
+        });
+        setMyPrompts(userPromptsData);
+      }, (error) => {
+          console.error("Error fetching user's prompts:", error);
+          alert("Could not fetch your submitted prompts. Please check your connection.");
+      });
+
+      return () => {
+        unsubFavorites();
+        unsubMyPrompts();
+      };
+    } else {
+      setFavorites([]);
+      setMyPrompts([]);
+    }
+  }, [user]);
+
+  const handleToggleFavorite = async (promptId: string) => {
+    if (!user) return;
+    const userDocRef = doc(db, 'users', user.uid);
+    const isCurrentlyFavorite = favorites.includes(promptId);
+
+    setFavorites(prevFavorites => isCurrentlyFavorite ? prevFavorites.filter(id => id !== promptId) : [...prevFavorites, promptId]);
+
+    try {
+      await updateDoc(userDocRef, { favorites: isCurrentlyFavorite ? arrayRemove(promptId) : arrayUnion(promptId) });
+    } catch (error) {
+      console.error("Error updating favorites:", error);
+      setFavorites(prevFavorites => isCurrentlyFavorite ? [...prevFavorites, promptId] : prevFavorites.filter(id => id !== promptId));
+      alert("Could not update favorites. Please try again.");
+    }
+  };
+
+  const handleAddPrompt = async (newPrompt: Omit<Prompt, 'id' | 'rating' | 'approved' | 'author' | 'authorId'>) => {
+    if (!user) {
+      alert("You must be logged in to submit a prompt.");
+      return;
+    }
+    try {
+      await addDoc(collection(db, 'prompts'), {
+        ...newPrompt,
+        rating: 0,
+        approved: true, // Automatically approved
+        author: user.displayName || user.email || 'Anonymous',
+        authorId: user.uid,
+        createdAt: serverTimestamp(),
+      });
+      alert('Prompt submitted successfully!');
+      setScreen('myPrompts');
+    } catch (error) {
+      console.error("Error adding prompt: ", error);
+      alert('Failed to submit prompt. Please try again.');
+    }
+  };
+  
+  const handleUpdatePrompt = async (promptId: string, updatedData: Omit<Prompt, 'id' | 'rating' | 'approved' | 'author' | 'authorId'>) => {
+    const promptRef = doc(db, 'prompts', promptId);
+    try {
+      await updateDoc(promptRef, {
+        ...updatedData,
+        approved: true, 
+      });
+      alert('Prompt updated successfully!');
+      setScreen('myPrompts');
+    } catch (error) {
+      console.error("Error updating prompt:", error);
+      alert("Failed to update prompt. Please try again.");
+    }
+  };
+
+  const handleRatePrompt = async (promptId: string, newRating: number) => {
+    if (!user) {
+      alert("You must be logged in to rate a prompt.");
+      return;
+    }
+    
+    const ratingDocRef = doc(db, 'prompts', promptId, 'ratings', user.uid);
+    const promptDocRef = doc(db, 'prompts', promptId);
+
+    try {
+      await setDoc(ratingDocRef, { rating: newRating });
+      const ratingsCollectionRef = collection(db, 'prompts', promptId, 'ratings');
+      const ratingsSnapshot = await getDocs(ratingsCollectionRef);
+      const ratings = ratingsSnapshot.docs.map(doc => doc.data().rating as number);
+      if (ratings.length > 0) {
+        const averageRating = ratings.reduce((acc, r) => acc + r, 0) / ratings.length;
+        await updateDoc(promptDocRef, { rating: parseFloat(averageRating.toFixed(1)) });
+      }
+    } catch (error) {
+      console.error("Error rating prompt:", error);
+      alert("Could not submit your rating. Please try again.");
+    }
+  };
+
+  const handleUpdateProfile = async (displayName: string) => {
+    if (!auth.currentUser) {
+        alert("You are not logged in.");
+        return;
+    }
+    try {
+        await updateProfile(auth.currentUser, { displayName });
+        setUser({ ...auth.currentUser });
+        alert("Profile updated successfully!");
+        setIsEditProfileModalOpen(false);
+    } catch (error) {
+        console.error("Error updating profile: ", error);
+        alert("Failed to update profile. Please try again.");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+  
+  const handleConfirmLogout = async () => {
+    await signOut(auth);
+    setIsLogoutModalOpen(false);
+  };
+
+  const handleOpenRatingModal = (prompt: Prompt) => setRatingModalPrompt(prompt);
+  const handleCloseRatingModal = () => setRatingModalPrompt(null);
+  const handleOpenEditProfileModal = () => setIsEditProfileModalOpen(true);
+
+  if (authLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Authenticating...</div>;
+  }
+  
+  if (!user) {
+    return <UserLoginScreen />;
+  }
+
+  const renderScreen = () => {
+    if (screen.startsWith('detail-')) {
+      const id = screen.split('-')[1];
+      const prompt = prompts.find(p => p.id === id);
+      if (prompt) {
+        return <DetailScreen prompt={prompt} setScreen={setScreen} t={t} onRatePrompt={handleRatePrompt} />;
+      }
+    }
+    
+    if (screen.startsWith('edit-')) {
+      const id = screen.split('-')[1];
+      const prompt = myPrompts.find(p => p.id === id);
+      if (prompt) {
+        return <EditPromptScreen prompt={prompt} onUpdatePrompt={handleUpdatePrompt} t={t} setScreen={setScreen} />;
+      }
+    }
+    
+    switch (screen) {
+      case 'home':
+        return <HomeScreen prompts={prompts} setScreen={setScreen} favorites={favorites} onToggleFavorite={handleToggleFavorite} onRateClick={handleOpenRatingModal} t={t} />;
+      case 'fav':
+        const favPrompts = prompts.filter(p => favorites.includes(p.id));
+        return <FavoritesScreen favPrompts={favPrompts} setScreen={setScreen} favorites={favorites} onToggleFavorite={handleToggleFavorite} onRateClick={handleOpenRatingModal} t={t}/>;
+      case 'add':
+        return <AddPromptScreen onAddPrompt={handleAddPrompt} t={t} />;
+      case 'assistant':
+        return <AssistantScreen t={t} />;
+      case 'myPrompts':
+        return <MyPromptsScreen myPrompts={myPrompts} t={t} setScreen={setScreen} />;
+      case 'settings':
+        return <SettingsScreen user={user} handleLogout={handleLogout} lang={lang} setLang={setLang} setScreen={setScreen} t={t} />;
+      case 'profile':
+        return <UserProfileScreen 
+                  user={user} 
+                  myPromptsCount={myPrompts.length}
+                  favoritesCount={favorites.length}
+                  setScreen={setScreen}
+                  onEditProfileClick={handleOpenEditProfileModal}
+                  t={t} 
+                />;
+      default:
+        return <HomeScreen prompts={prompts} setScreen={setScreen} favorites={favorites} onToggleFavorite={handleToggleFavorite} onRateClick={handleOpenRatingModal} t={t} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 font-sans">
+        {ratingModalPrompt && <RatingModal prompt={ratingModalPrompt} onClose={handleCloseRatingModal} onRatePrompt={handleRatePrompt} />}
+        {isEditProfileModalOpen && user && <EditProfileModal user={user} onClose={() => setIsEditProfileModalOpen(false)} onUpdateProfile={handleUpdateProfile} />}
+        {isLogoutModalOpen && <LogoutConfirmationModal onConfirm={handleConfirmLogout} onCancel={() => setIsLogoutModalOpen(false)} />}
+
+        <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm shadow-md">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-blue-600">💡 Ideas</h1>
+                <div className="flex gap-2 items-center">
+                    <select value={lang} onChange={(e) => setLang(e.target.value as Language)} className="px-2 py-1 border rounded bg-transparent font-semibold">
+                        <option value="en">EN</option>
+                        <option value="hi">HI</option>
+                    </select>
+                    <button onClick={handleLogout} className="px-3 py-1 bg-red-500 text-white rounded-md font-bold text-sm hover:bg-red-600 transition">Logout</button>
+                </div>
+            </div>
+        </div>
+        <main className="pb-24">
+            {loading ? <div className="text-center py-20">Loading prompts...</div> : renderScreen()}
+        </main>
+        <BottomNav screen={screen} setScreen={setScreen} t={t} />
+    </div>
+  );
+};
+
+export default UserApp;
+// --- END OF FILE: components/user/UserApp.tsx ---
+
+
+
+// --- START OF FILE: components/common/PromptCard.tsx ---
+import React, { useState } from 'react';
+import { Heart, Star } from 'lucide-react';
+import type { Prompt, UserScreen } from '../../types';
+
+interface PromptCardProps {
+  prompt: Prompt;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
+  onView: (screen: UserScreen) => void;
+  onRateClick: (prompt: Prompt) => void;
+  t: { [key: string]: string };
+}
+
+const StarDisplay: React.FC<{ rating: number }> = ({ rating }) => {
+  const roundedRating = Math.round(rating);
+  return (
+    <div className="flex items-center gap-0.5">
+      {[...Array(5)].map((_, i) => (
+        <Star 
+          key={i} 
+          size={14} 
+          className={i < roundedRating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"} 
+        />
+      ))}
+      <span className="text-xs font-bold text-gray-600 ml-1">{rating.toFixed(1)}</span>
+    </div>
+  );
+};
+
+
+const PromptCard: React.FC<PromptCardProps> = ({ prompt, isFavorite, onToggleFavorite, onView, onRateClick, t }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(prompt.text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-md p-4 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+      <div className="text-4xl mb-2">{prompt.image}</div>
+      <h3 className="font-bold text-md mb-1 truncate">{prompt.title}</h3>
+      <p className="text-xs text-gray-600 mb-3 flex-grow">{prompt.desc}</p>
+      <div className="flex justify-between items-center mb-3">
+        <button onClick={() => onRateClick(prompt)} className="p-1 rounded-full hover:bg-yellow-50">
+          <StarDisplay rating={prompt.rating} />
+        </button>
+        <button onClick={() => onToggleFavorite(prompt.id)} className="p-1 rounded-full hover:bg-red-100 active:scale-90 transition-transform duration-150">
+          <Heart size={16} className={`transition-all duration-300 transform ${isFavorite ? 'text-red-500 fill-red-500 scale-110' : 'text-gray-400'}`} />
+        </button>
+      </div>
+      <div className="flex gap-2">
+        <button 
+          onClick={handleCopy} 
+          className="flex-1 bg-blue-500 text-white text-xs py-2 rounded-lg font-bold hover:bg-blue-600 transition-colors"
+        >
+          {copied ? t.copied : t.copy}
+        </button>
+        <button 
+          onClick={() => onView(`detail-${prompt.id}`)} 
+          className="flex-1 bg-purple-500 text-white text-xs py-2 rounded-lg font-bold hover:bg-purple-600 transition-colors"
+        >
+          View
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default PromptCard;
+// --- END OF FILE: components/common/PromptCard.tsx ---
+
+
+
+// --- START OF FILE: components/user/HomeScreen.tsx ---
+import React, { useState } from 'react';
+import { Search } from 'lucide-react';
+import { CATEGORIES } from '../../constants';
+import PromptCard from '../common/PromptCard';
+import type { Prompt, UserScreen } from '../../types';
+
+interface HomeScreenProps {
+  prompts: Prompt[];
+  setScreen: (screen: UserScreen) => void;
+  favorites: string[];
+  onToggleFavorite: (id: string) => void;
+  onRateClick: (prompt: Prompt) => void;
+  t: { [key: string]: string };
+}
+
+const HomeScreen: React.FC<HomeScreenProps> = ({ prompts, setScreen, favorites, onToggleFavorite, onRateClick, t }) => {
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
+  
+  const filtered = prompts.filter(p => 
+    (!category || p.category === category) && 
+    (p.title.toLowerCase().includes(search.toLowerCase()) || p.desc.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-4">
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <input 
+          type="text" 
+          placeholder="Search prompts..." 
+          value={search} 
+          onChange={(e) => setSearch(e.target.value)} 
+          className="w-full pl-10 pr-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+        />
+      </div>
+
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-4 px-4">
+        <button 
+          onClick={() => setCategory('')} 
+          className={`px-4 py-2 rounded-full font-bold whitespace-nowrap text-sm transition-colors ${!category ? 'bg-blue-600 text-white shadow' : 'bg-white hover:bg-gray-200'}`}
+        >
+          All
+        </button>
+        {CATEGORIES.map(c => (
+          <button 
+            key={c} 
+            onClick={() => setCategory(category === c ? '' : c)} 
+            className={`px-4 py-2 rounded-full font-bold whitespace-nowrap text-sm transition-colors ${category === c ? 'bg-blue-600 text-white shadow' : 'bg-white hover:bg-gray-200'}`}
+          >
+            {c.charAt(0).toUpperCase() + c.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map(p => (
+          <PromptCard 
+            key={p.id}
+            prompt={p}
+            isFavorite={favorites.includes(p.id)}
+            onToggleFavorite={onToggleFavorite}
+            onView={setScreen}
+            onRateClick={onRateClick}
+            t={t}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default HomeScreen;
+// --- END OF FILE: components/user/HomeScreen.tsx ---
+
+
+
+// --- START OF FILE: components/user/FavoritesScreen.tsx ---
+import React from 'react';
+import PromptCard from '../common/PromptCard';
+import type { Prompt, UserScreen } from '../../types';
+
+interface FavoritesScreenProps {
+  favPrompts: Prompt[];
+  setScreen: (screen: UserScreen) => void;
+  favorites: string[];
+  onToggleFavorite: (id: string) => void;
+  onRateClick: (prompt: Prompt) => void;
+  t: { [key: string]: string };
+}
+
+const FavoritesScreen: React.FC<FavoritesScreenProps> = ({ favPrompts, setScreen, favorites, onToggleFavorite, onRateClick, t }) => {
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4">
+        <h1 className="text-2xl font-bold text-red-500">❤️ {t.favorites}</h1>
+      </div>
+      <div className="max-w-6xl mx-auto px-4 py-4">
+        {favPrompts.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-5xl mb-4">💔</p>
+            <p className="text-gray-600">You haven't favorited any prompts yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {favPrompts.map(p => (
+              <PromptCard
+                key={p.id}
+                prompt={p}
+                isFavorite={favorites.includes(p.id)}
+                onToggleFavorite={onToggleFavorite}
+                onView={setScreen}
+                onRateClick={onRateClick}
+                t={t}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default FavoritesScreen;
+// --- END OF FILE: components/user/FavoritesScreen.tsx ---
+
+
+
+// --- START OF FILE: components/user/AddPromptScreen.tsx ---
+import React, { useState } from 'react';
+import { CATEGORIES } from '../../constants';
+import type { Prompt } from '../../types';
+
+interface AddPromptScreenProps {
+  onAddPrompt: (newPrompt: Omit<Prompt, 'id' | 'rating' | 'approved' | 'author' | 'authorId'>) => void;
+  t: { [key: string]: string };
+}
+
+const AddPromptScreen: React.FC<AddPromptScreenProps> = ({ onAddPrompt, t }) => {
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
+  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [text, setText] = useState('');
+  const [image, setImage] = useState('💡');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !desc || !category || !text) {
+      alert('Please fill all fields');
+      return;
+    }
+    onAddPrompt({ title, desc, category, text, image });
+  };
+
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4">
+        <h1 className="text-2xl font-bold text-green-500">➕ Submit Prompt</h1>
+      </div>
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-6 space-y-4">
+          <div>
+            <label htmlFor="title" className="font-semibold text-sm text-gray-700">Title</label>
+            <input id="title" type="text" placeholder="e.g., React Weather App" value={title} onChange={e => setTitle(e.target.value)} className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+          </div>
+          <div>
+            <label htmlFor="desc" className="font-semibold text-sm text-gray-700">Short Description</label>
+            <textarea id="desc" placeholder="e.g., A simple app to display weather." value={desc} onChange={e => setDesc(e.target.value)} className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows={2} required></textarea>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-grow">
+              <label htmlFor="category" className="font-semibold text-sm text-gray-700">Category</label>
+              <select id="category" value={category} onChange={e => setCategory(e.target.value)} className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+              </select>
+            </div>
+            <div>
+               <label htmlFor="image" className="font-semibold text-sm text-gray-700">Icon</label>
+               <input id="image" type="text" value={image} onChange={e => setImage(e.target.value)} className="w-20 text-center mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" maxLength={2} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label htmlFor="text" className="font-semibold text-sm text-gray-700">Prompt Text</label>
+            </div>
+            <textarea id="text" placeholder="The full text of your prompt..." value={text} onChange={e => setText(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows={6} required></textarea>
+          </div>
+          <button type="submit" className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-colors disabled:bg-gray-400">
+            {t.submit}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default AddPromptScreen;
+// --- END OF FILE: components/user/AddPromptScreen.tsx ---
+
+
+
+// --- START OF FILE: components/user/SettingsScreen.tsx ---
+import React from 'react';
+import { User } from 'firebase/auth';
+import { ChevronRight } from 'lucide-react';
+import type { Language, UserScreen } from '../../types';
+
+interface SettingsScreenProps {
+  user: User;
+  handleLogout: () => void;
+  lang: Language;
+  setLang: (lang: Language) => void;
+  setScreen: (screen: UserScreen) => void;
+  t: { [key: string]: string };
+}
+
+const SettingsScreen: React.FC<SettingsScreenProps> = ({ user, handleLogout, lang, setLang, setScreen, t }) => {
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4">
+        <h1 className="text-2xl font-bold">⚙️ {t.settings}</h1>
+      </div>
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        <div className="bg-white rounded-lg shadow-lg p-6 space-y-4">
+          <div className="pb-4 border-b">
+            <p className="text-sm text-gray-500">Logged in as</p>
+            <p className="font-semibold text-gray-800 break-words">{user.email}</p>
+          </div>
+
+          <button onClick={() => setScreen('profile')} className="w-full text-left bg-gray-50 hover:bg-gray-100 p-4 rounded-lg flex justify-between items-center transition">
+            <div>
+              <p className="font-bold text-gray-800">My Profile</p>
+              <p className="text-sm text-gray-500">View your stats and account info</p>
+            </div>
+            <ChevronRight size={20} className="text-gray-400" />
+          </button>
+
+          <div>
+            <label className="font-bold text-gray-700">{t.language}</label>
+            <select 
+              value={lang} 
+              onChange={(e) => setLang(e.target.value as Language)} 
+              className="w-full px-4 py-2 border rounded-lg mt-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="en">English</option>
+              <option value="hi">हिंदी</option>
+            </select>
+          </div>
+          <button 
+            onClick={handleLogout} 
+            className="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition"
+          >
+            {t.logout}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SettingsScreen;
+// --- END OF FILE: components/user/SettingsScreen.tsx ---
+
+
+
+// --- START OF FILE: components/user/DetailScreen.tsx ---
+import React, { useState, useEffect } from 'react';
+import { Star } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../services/firebase';
+import type { Prompt, UserScreen } from '../../types';
+
+interface DetailScreenProps {
+  prompt: Prompt;
+  setScreen: (screen: UserScreen) => void;
+  t: { [key: string]: string };
+  onRatePrompt: (promptId: string, rating: number) => void;
+}
+
+const DetailScreen: React.FC<DetailScreenProps> = ({ prompt, setScreen, t, onRatePrompt }) => {
+  const [copied, setCopied] = useState(false);
+  const [userRating, setUserRating] = useState(0);
+  const [loadingRating, setLoadingRating] = useState(true);
+
+  useEffect(() => {
+    const fetchUserRating = async () => {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setLoadingRating(false);
+        return;
+      }
+      try {
+        const ratingDocRef = doc(db, 'prompts', prompt.id, 'ratings', currentUser.uid);
+        const docSnap = await getDoc(ratingDocRef);
+        if (docSnap.exists()) {
+          setUserRating(docSnap.data().rating);
+        }
+      } catch (error) {
+        console.error("Error fetching user rating:", error);
+      } finally {
+        setLoadingRating(false);
+      }
+    };
+
+    fetchUserRating();
+  }, [prompt.id]);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(prompt.text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  
+  const StarRating: React.FC<{ rating: number; onRatingChange: (newRating: number) => void }> = ({ rating, onRatingChange }) => {
+      const [hoverRating, setHoverRating] = useState(0);
+      return (
+        <div>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                onMouseEnter={() => setHoverRating(star)}
+                onMouseLeave={() => setHoverRating(0)}
+                onClick={() => onRatingChange(star)}
+                aria-label={`Rate ${star} stars`}
+              >
+                <Star
+                  size={32}
+                  className={`cursor-pointer transition-colors ${
+                    (hoverRating || rating) >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+          {rating > 0 && <p className="text-sm text-gray-600 mt-2">Your rating: {rating} star{rating > 1 ? 's' : ''}</p>}
+        </div>
+      );
+    };
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-4">
+      <button 
+        onClick={() => setScreen('home')} 
+        className="mb-4 px-4 py-2 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700 transition"
+      >
+        ← {t.back}
+      </button>
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="text-6xl mb-4">{prompt.image}</div>
+        <h1 className="text-2xl font-bold mb-2">{prompt.title}</h1>
+        <p className="text-gray-600 mb-4">{prompt.desc}</p>
+        <div className="p-4 bg-gray-100 rounded-lg mb-4 text-sm whitespace-pre-wrap font-mono">{prompt.text}</div>
+        <div className="mb-4 text-sm text-gray-700 space-y-1">
+          <p><strong>Rating:</strong> <span className="font-semibold bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">⭐ {prompt.rating}</span></p>
+          <p><strong>By:</strong> <span className="font-semibold">{prompt.author}</span></p>
+        </div>
+        <button 
+          onClick={handleCopy} 
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition mb-6"
+        >
+          {copied ? `✓ ${t.copied}` : t.copy}
+        </button>
+
+        <div className="pt-6 border-t">
+            <h3 className="font-bold text-lg mb-2">Rate this prompt</h3>
+            {auth.currentUser ? (
+              loadingRating ? <p className="text-sm text-gray-500">Loading your rating...</p> : 
+              <StarRating 
+                rating={userRating} 
+                onRatingChange={(newRating) => {
+                  setUserRating(newRating); // Optimistic update
+                  onRatePrompt(prompt.id, newRating);
+                }}
+              />
+            ) : (
+              <p className="text-sm text-gray-500">You must be logged in to rate prompts.</p>
+            )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DetailScreen;
+// --- END OF FILE: components/user/DetailScreen.tsx ---
+
+
+
+// --- START OF FILE: components/admin/AdminApp.tsx ---
+import React, { useState, useEffect } from 'react';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { collection, onSnapshot, doc, deleteDoc, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../../services/firebase';
+import { ADMIN_UIDS, CATEGORIES } from '../../constants';
+import { Sparkles, X } from 'lucide-react';
+import { generatePrompt } from '../../services/geminiService';
+
+import DashboardScreen from './DashboardScreen';
+import ApprovedScreen from './ApprovedScreen';
+import AnalyticsScreen from './AnalyticsScreen';
+import type { Prompt, Language, AdminScreen } from '../../types';
+
+interface ConfirmationModalProps {
+  prompt: Prompt | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ prompt, onConfirm, onCancel }) => {
+  if (!prompt) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative" style={{ animation: 'fade-in-up 0.3s ease-out forwards' }}>
+        <button onClick={onCancel} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <X size={24} />
+        </button>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Confirm Deletion</h2>
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to delete the prompt: <span className="font-semibold">"{prompt.title}"</span>? This action cannot be undone.
+        </p>
+        <div className="flex gap-4">
+          <button onClick={onCancel} className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-300 transition-colors">
+            Cancel
+          </button>
+          <button onClick={onConfirm} className="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition-colors">
+            Delete
+          </button>
+        </div>
+      </div>
+       <style>{`@keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+    </div>
+  );
+};
+
+// Logout Confirmation Modal
+const LogoutConfirmationModal: React.FC<{ onConfirm: () => void; onCancel: () => void; }> = ({ onConfirm, onCancel }) => {
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative" style={{ animation: 'fade-in-up 0.3s ease-out forwards' }}>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Confirm Logout</h2>
+        <p className="text-gray-600 mb-6">Are you sure you want to log out from the Admin Panel?</p>
+        <div className="flex gap-4">
+          <button onClick={onCancel} className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-300 transition-colors">
+            Cancel
+          </button>
+          <button onClick={onConfirm} className="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition-colors">
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+interface AddPromptAdminScreenProps {
+  onAddPrompt: (newPrompt: Omit<Prompt, 'id' | 'rating' | 'approved' | 'author' | 'authorId'>) => void;
+  t: { [key: string]: string };
+}
+
+const AddPromptAdminScreen: React.FC<AddPromptAdminScreenProps> = ({ onAddPrompt, t }) => {
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
+  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [text, setText] = useState('');
+  const [image, setImage] = useState('💡');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !desc || !category || !text) {
+      alert('Please fill all fields');
+      return;
+    }
+    onAddPrompt({ title, desc, category, text, image });
+  };
+
+  const handleGenerate = async () => {
+    if (!category) {
+      alert('Please select a category first.');
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const result = await generatePrompt(category);
+      if (result.title) setTitle(result.title);
+      if (result.desc) setDesc(result.desc);
+      if (result.text) setText(result.text);
+    } catch (error) {
+      alert((error as Error).message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4 border-b">
+        <h1 className="text-2xl font-bold text-purple-600">✍️ Add New Prompt</h1>
+      </div>
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-6 space-y-4">
+          <div>
+            <label htmlFor="admin-title" className="font-semibold text-sm text-gray-700">Title</label>
+            <input id="admin-title" type="text" placeholder="e.g., React Weather App" value={title} onChange={e => setTitle(e.target.value)} className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+          </div>
+          <div>
+            <label htmlFor="admin-desc" className="font-semibold text-sm text-gray-700">Short Description</label>
+            <textarea id="admin-desc" placeholder="e.g., A simple app to display weather." value={desc} onChange={e => setDesc(e.target.value)} className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" rows={2} required></textarea>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-grow">
+              <label htmlFor="admin-category" className="font-semibold text-sm text-gray-700">Category</label>
+              <select id="admin-category" value={category} onChange={e => setCategory(e.target.value)} className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+              </select>
+            </div>
+            <div>
+               <label htmlFor="admin-image" className="font-semibold text-sm text-gray-700">Icon</label>
+               <input id="admin-image" type="text" value={image} onChange={e => setImage(e.target.value)} className="w-20 text-center mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" maxLength={2} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label htmlFor="admin-text" className="font-semibold text-sm text-gray-700">Prompt Text</label>
+              <button type="button" onClick={handleGenerate} disabled={isGenerating} className="flex items-center gap-1 text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-semibold hover:bg-purple-200 disabled:opacity-50 disabled:cursor-wait">
+                <Sparkles size={14} />
+                {isGenerating ? t.generating : t.generate_with_ai}
+              </button>
+            </div>
+            <textarea id="admin-text" placeholder="The full text of your prompt..." value={text} onChange={e => setText(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" rows={6} required></textarea>
+          </div>
+          <button type="submit" disabled={isGenerating} className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition-colors disabled:bg-gray-400">
+            {t.submit}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+
+interface AdminAppProps {
+  lang: Language;
+  setLang: (lang: Language) => void;
+  t: { [key: string]: string };
+}
+
+const AdminApp: React.FC<AdminAppProps> = ({ lang, setLang, t }) => {
+  const [screen, setScreen] = useState<AdminScreen>('dashboard');
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [promptToDelete, setPromptToDelete] = useState<Prompt | null>(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user || !ADMIN_UIDS.includes(user.uid)) return;
+    
+    const q = query(collection(db, 'prompts'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const promptsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Prompt));
+      setPrompts(promptsData);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const handleRequestDelete = (prompt: Prompt) => {
+    setPromptToDelete(prompt);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (!promptToDelete) return;
+    try {
+        const promptRef = doc(db, 'prompts', promptToDelete.id);
+        await deleteDoc(promptRef);
+    } catch (error) {
+        console.error("Error deleting prompt:", error);
+        alert("Failed to delete prompt.");
+    } finally {
+        setPromptToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setPromptToDelete(null);
+  };
+  
+  const handleAdminAddPrompt = async (newPrompt: Omit<Prompt, 'id' | 'rating' | 'approved' | 'author' | 'authorId'>) => {
+    if (!user) {
+      alert("Authentication error.");
+      return;
+    }
+    try {
+      await addDoc(collection(db, 'prompts'), {
+        ...newPrompt,
+        rating: 0,
+        approved: true, // Automatically approved
+        author: user.email || 'Admin',
+        authorId: user.uid,
+        createdAt: serverTimestamp(),
+      });
+      alert('Prompt added successfully!');
+      setScreen('dashboard'); // Go back to dashboard after adding
+    } catch (error) {
+      console.error("Error adding prompt from admin: ", error);
+      alert('Failed to add prompt. Please try again.');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+  
+  const handleConfirmLogout = async () => {
+    await signOut(auth);
+    setIsLogoutModalOpen(false);
+  };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading Admin Panel...</div>;
+  }
+  
+  const renderScreen = () => {
+    switch (screen) {
+      case 'dashboard':
+        return <DashboardScreen prompts={prompts} setScreen={setScreen} />;
+      case 'approved':
+        return <ApprovedScreen prompts={prompts} onDelete={handleRequestDelete} />;
+      case 'analytics':
+        return <AnalyticsScreen prompts={prompts} />;
+      case 'add':
+        return <AddPromptAdminScreen onAddPrompt={handleAdminAddPrompt} t={t} />;
+      default:
+        return <DashboardScreen prompts={prompts} setScreen={setScreen} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100">
+       <ConfirmationModal
+        prompt={promptToDelete}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
+      {isLogoutModalOpen && <LogoutConfirmationModal onConfirm={handleConfirmLogout} onCancel={() => setIsLogoutModalOpen(false)} />}
+
+      <div className="bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">🔐 {t.admin}</h1>
+          <div className="flex gap-2 items-center">
+            {screen !== 'dashboard' && (
+                <button onClick={() => setScreen('dashboard')} className="px-3 py-1 bg-white/20 text-white rounded-md font-bold text-sm hover:bg-white/30 transition">Dashboard</button>
+            )}
+            <select value={lang} onChange={(e) => setLang(e.target.value as Language)} className="px-2 py-1 rounded text-gray-800 font-bold bg-white/90">
+              <option value="en">EN</option>
+              <option value="hi">HI</option>
+            </select>
+            <button onClick={handleLogout} className="px-3 py-1 bg-red-700 text-white rounded-md font-bold text-sm hover:bg-red-800 transition">Logout</button>
+          </div>
+        </div>
+      </div>
+      <main>
+        {renderScreen()}
+      </main>
+    </div>
+  );
+};
+
+export default AdminApp;
+// --- END OF FILE: components/admin/AdminApp.tsx ---
+
+
+
+// --- START OF FILE: components/admin/DashboardScreen.tsx ---
+import React from 'react';
+import type { Prompt, AdminScreen } from '../../types';
+
+interface DashboardScreenProps {
+  prompts: Prompt[];
+  setScreen: (screen: AdminScreen) => void;
+}
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  colorClass: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, colorClass }) => (
+  <div className="bg-white rounded-lg shadow p-4 transform hover:scale-105 transition-transform duration-300">
+    <p className="text-sm text-gray-600">{title}</p>
+    <p className={`text-3xl font-bold ${colorClass}`}>{value}</p>
+  </div>
+);
+
+interface NavCardProps {
+  title: string;
+  icon: string;
+  description: string;
+  gradient: string;
+  onClick: () => void;
+}
+
+const NavCard: React.FC<NavCardProps> = ({ title, icon, description, gradient, onClick }) => (
+  <button onClick={onClick} className={`${gradient} text-white rounded-lg p-8 hover:shadow-2xl font-bold text-left transform hover:-translate-y-1 transition-all duration-300 flex flex-col h-full`}>
+    <div className="text-4xl mb-2">{icon}</div>
+    <p className="text-xl flex-grow">{title}</p>
+    <p className="text-sm opacity-80">{description}</p>
+  </button>
+);
+
+const DashboardScreen: React.FC<DashboardScreenProps> = ({ prompts, setScreen }) => {
+  const avgRating = (prompts.reduce((acc, p) => acc + p.rating, 0) / (prompts.length || 1)).toFixed(1);
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <StatCard title="Total Prompts" value={prompts.length} colorClass="text-gray-800" />
+        <StatCard title="Approved" value={prompts.filter(p => p.approved).length} colorClass="text-green-600" />
+        <StatCard title="Avg Rating" value={avgRating} colorClass="text-blue-600" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <NavCard title="Manage Prompts" icon="📖" description={`${prompts.length} total items`} gradient="bg-gradient-to-br from-green-400 to-emerald-500" onClick={() => setScreen('approved')} />
+        <NavCard title="Analytics" icon="📊" description="View charts & stats" gradient="bg-gradient-to-br from-blue-400 to-indigo-500" onClick={() => setScreen('analytics')} />
+        <NavCard title="Add New Prompt" icon="✍️" description="Create & auto-approve" gradient="bg-gradient-to-br from-purple-400 to-pink-500" onClick={() => setScreen('add')} />
+      </div>
+    </div>
+  );
+};
+
+export default DashboardScreen;
+// --- END OF FILE: components/admin/DashboardScreen.tsx ---
+
+
+
+// --- START OF FILE: components/admin/PendingScreen.tsx ---
+import React from 'react';
+import type { Prompt } from '../../types';
+
+interface PendingScreenProps {
+  prompts: Prompt[];
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+  t: { [key: string]: string };
+}
+
+const PendingScreen: React.FC<PendingScreenProps> = ({ prompts, onApprove, onReject, t }) => {
+  const pending = prompts.filter(p => !p.approved);
+
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4 border-b">
+        <h1 className="text-2xl font-bold text-yellow-600">⏳ Pending Approvals</h1>
+      </div>
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        {pending.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-6xl mb-4">🎉</p>
+            <p className="text-2xl text-gray-600">All caught up! No pending prompts.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {pending.map(p => (
+              <div key={p.id} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-400">
+                <div className="flex gap-4 mb-4">
+                  <div className="text-5xl">{p.image}</div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold">{p.title}</h3>
+                    <p className="text-gray-600">{p.desc}</p>
+                    <p className="text-sm text-gray-500 mt-1">By: {p.author} | Category: {p.category}</p>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg mb-4 text-sm whitespace-pre-wrap font-mono">{p.text}</div>
+                <div className="flex gap-2">
+                  <button onClick={() => onApprove(p.id)} className="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700 transition">✓ {t.approve}</button>
+                  <button onClick={() => onReject(p.id)} className="flex-1 bg-red-600 text-white py-2 rounded-lg font-bold hover:bg-red-700 transition">✗ {t.reject}</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PendingScreen;
+// --- END OF FILE: components/admin/PendingScreen.tsx ---
+
+
+
+// --- START OF FILE: components/admin/ApprovedScreen.tsx ---
+import React from 'react';
+import type { Prompt } from '../../types';
+
+interface ApprovedScreenProps {
+  prompts: Prompt[];
+  onDelete: (prompt: Prompt) => void;
+}
+
+const ApprovedScreen: React.FC<ApprovedScreenProps> = ({ prompts, onDelete }) => {
+  return (
+    <div>
+       <div className="bg-white shadow-md p-4 border-b">
+        <h1 className="text-2xl font-bold text-purple-600">📖 Manage Prompts</h1>
+      </div>
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {prompts.length === 0 ? (
+          <p className="text-center text-xl text-gray-600 py-10">No prompts have been submitted yet.</p>
+        ) : (
+          <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+            <table className="w-full text-left min-w-[600px]">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="p-4 font-semibold">Title</th>
+                  <th className="p-4 font-semibold">Author</th>
+                  <th className="p-4 font-semibold">Rating</th>
+                  <th className="p-4 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {prompts.map(p => (
+                  <tr key={p.id} className="border-b last:border-0 hover:bg-gray-50">
+                    <td className="p-4 font-medium">{p.title}</td>
+                    <td className="p-4">{p.author}</td>
+                    <td className="p-4">⭐ {p.rating.toFixed(1)}</td>
+                    <td className="p-4 text-right">
+                       <div className="flex gap-2 justify-end">
+                        <button onClick={() => onDelete(p)} className="bg-red-100 text-red-700 text-xs px-3 py-1 rounded-full font-semibold hover:bg-red-200">Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ApprovedScreen;
+// --- END OF FILE: components/admin/ApprovedScreen.tsx ---
+
+
+
+// --- START OF FILE: components/admin/AnalyticsScreen.tsx ---
+import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import type { Prompt } from '../../types';
+
+interface AnalyticsScreenProps {
+  prompts: Prompt[];
+}
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
+const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ prompts }) => {
+  const approvedPrompts = prompts.filter(p => p.approved);
+
+  const promptsPerCategory = approvedPrompts.reduce((acc, prompt) => {
+    acc[prompt.category] = (acc[prompt.category] || 0) + 1;
+    return acc;
+  }, {} as { [key: string]: number });
+
+  const categoryChartData = Object.entries(promptsPerCategory).map(([name, value]) => ({ name, count: value }));
+
+  const ratingData = [
+    { name: '5 Stars', count: approvedPrompts.filter(p => p.rating >= 4.5).length },
+    { name: '4 Stars', count: approvedPrompts.filter(p => p.rating >= 4 && p.rating < 4.5).length },
+    { name: '3 Stars', count: approvedPrompts.filter(p => p.rating >= 3 && p.rating < 4).length },
+    { name: '< 3 Stars', count: approvedPrompts.filter(p => p.rating < 3).length },
+  ].filter(d => d.count > 0);
+
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4 border-b">
+        <h1 className="text-2xl font-bold text-blue-600">📊 Analytics</h1>
+      </div>
+      <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h2 className="text-lg font-bold mb-4">Prompts per Category</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={categoryChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h2 className="text-lg font-bold mb-4">Rating Distribution</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie data={ratingData} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={100} fill="#8884d8" dataKey="count">
+                {ratingData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AnalyticsScreen;
+// --- END OF FILE: components/admin/AnalyticsScreen.tsx ---
+
+
+
+// --- START OF FILE: services/firebase.ts ---
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+
+// Firebase configuration updated with your web app credentials
+const firebaseConfig = {
+  apiKey: "AIzaSyAUnCQFmL0PHhVPOpkUj9YUGc3RHBmWBpg",
+  authDomain: "ideas-a9dea.firebaseapp.com",
+  projectId: "ideas-a9dea",
+  storageBucket: "ideas-a9dea.firebasestorage.app",
+  messagingSenderId: "126723826835",
+  appId: "1:126723826835:web:4c411b5a172a8c4f331966",
+  measurementId: "G-BEJR2TGRWJ"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize services
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+export { db, auth };
+// --- END OF FILE: services/firebase.ts ---
+
+
+
+// --- START OF FILE: components/admin/AdminLoginScreen.tsx ---
+import React, { useState } from 'react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../services/firebase';
+import type { Mode } from '../../types';
+
+interface AdminLoginScreenProps {
+  setMode: (mode: Mode) => void;
+}
+
+const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ setMode }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <form
+          onSubmit={handleLogin}
+          className="bg-white shadow-2xl rounded-2xl px-8 pt-6 pb-8 mb-4"
+        >
+          <h1 className="text-3xl font-bold text-center mb-2 text-red-600">🔐 Admin Login</h1>
+          <p className="text-center text-gray-600 mb-6">Access the Ideas panel.</p>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+              Email
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-red-500"
+              id="email"
+              type="email"
+              placeholder="admin@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+              Password
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-red-500"
+              id="password"
+              type="password"
+              placeholder="******************"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
+          <div className="flex items-center justify-between">
+            <button
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition disabled:opacity-50"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </div>
+        </form>
+        <button onClick={() => setMode('select')} className="text-center w-full text-sm text-gray-600 hover:underline mt-4">
+            ← Back to mode select
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default AdminLoginScreen;
+// --- END OF FILE: components/admin/AdminLoginScreen.tsx ---
+
+
+
+// --- START OF FILE: components/user/UserLoginScreen.tsx ---
+import React, { useState } from 'react';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth } from '../../services/firebase';
+
+const GoogleIcon = () => (
+    <svg className="w-5 h-5" viewBox="0 0 48 48">
+        <path fill="#4285F4" d="M24 9.5c3.9 0 6.9 1.6 9.1 3.7l6.9-6.9C35.9 2.5 30.5 0 24 0 14.9 0 7.3 5.4 3 13.5l8.1 6.3C12.9 13.2 18.1 9.5 24 9.5z"></path>
+        <path fill="#34A853" d="M46.2 25.4c0-1.7-.2-3.4-.5-5H24v9.5h12.5c-.5 3.1-2.2 5.7-4.8 7.5l7.3 5.7c4.3-4 6.7-9.9 6.7-16.7z"></path>
+        <path fill="#FBBC05" d="M11.1 28.1c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8L3 13.5C1.1 17.1 0 21.4 0 26.2s1.1 9.1 3 12.7l8.1-6.3z"></path>
+        <path fill="#EA4335" d="M24 48c6.5 0 12-2.1 16-5.6l-7.3-5.7c-2.1 1.4-4.8 2.3-7.7 2.3-5.9 0-11.1-3.7-12.9-8.8l-8.1 6.3C7.3 42.6 14.9 48 24 48z"></path>
+        <path fill="none" d="M0 0h48v48H0z"></path>
+    </svg>
+);
+
+
+const UserLoginScreen: React.FC = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+    } catch (err: any) {
+      let message = 'An unknown error occurred.';
+      if (err.code === 'auth/weak-password') {
+        message = 'Password should be at least 6 characters.';
+      } else if (err.code === 'auth/email-already-in-use') {
+        message = 'This email is already registered. Please login.';
+      } else if (err.code === 'auth/invalid-credential') {
+        message = 'Invalid email or password.';
+      } else {
+        message = 'Failed to authenticate. Please try again.';
+      }
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError(null);
+    const provider = new GoogleAuthProvider();
+    try {
+        await signInWithPopup(auth, provider);
+    } catch (err: any) {
+        console.error("Google Sign-In Error:", err);
+        let message = 'Failed to sign in with Google. Please try again.';
+        
+        switch (err.code) {
+            case 'auth/popup-closed-by-user':
+            case 'auth/cancelled-popup-request':
+                return;
+            case 'auth/popup-blocked':
+                message = 'Popup blocked by browser. Please enable popups and try again.';
+                break;
+            case 'auth/operation-not-allowed':
+                message = 'Google Sign-In is not enabled. Please check Firebase settings.';
+                break;
+            case 'auth/unauthorized-domain':
+                 message = 'This domain is not authorized for Google Sign-In.';
+                 break;
+            case 'auth/account-exists-with-different-credential':
+                message = 'An account already exists with this email using a different sign-in method.';
+                break;
+        }
+
+        setError(message);
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <h1 className="text-4xl font-bold text-center mb-6 text-blue-600">💡 Ideas</h1>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white shadow-2xl rounded-2xl px-8 pt-6 pb-8 mb-4"
+        >
+          <h2 className="text-2xl font-bold text-center mb-4 text-gray-800">{isLogin ? 'Welcome Back!' : 'Create Account'}</h2>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+              Email
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+              Password
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="password"
+              type="password"
+              placeholder="••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
+          <div className="flex flex-col gap-4">
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition disabled:opacity-50"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
+            </button>
+             <div className="relative flex items-center">
+                <div className="flex-grow border-t border-gray-300"></div>
+                <span className="flex-shrink mx-4 text-gray-400 text-xs">OR</span>
+                <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full bg-white hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm flex items-center justify-center gap-2 transition disabled:opacity-50"
+            >
+              <GoogleIcon />
+              Sign in with Google
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-center text-sm text-blue-600 hover:underline"
+            >
+              {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Sign In'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default UserLoginScreen;
+// --- END OF FILE: components/user/UserLoginScreen.tsx ---
+
+
+
+// --- START OF FILE: components/user/MyPromptsScreen.tsx ---
+import React from 'react';
+import { Edit } from 'lucide-react';
+import type { Prompt, UserScreen } from '../../types';
+
+interface MyPromptsScreenProps {
+  myPrompts: Prompt[];
+  t: { [key: string]: string };
+  setScreen: (screen: UserScreen) => void;
+}
+
+const MyPromptCard: React.FC<{ prompt: Prompt; onEdit: (id: string) => void }> = ({ prompt, onEdit }) => (
+  <div className="bg-white rounded-lg shadow-md p-4 flex items-start gap-4 border-l-4 border-blue-500">
+    <div className="text-4xl mt-1">{prompt.image}</div>
+    <div className="flex-1">
+      <div className="flex justify-between items-start">
+        <h3 className="font-bold text-lg">{prompt.title}</h3>
+        <button 
+          onClick={() => onEdit(prompt.id)} 
+          className="text-gray-500 p-2 rounded-full hover:bg-gray-200 hover:text-gray-800 transition-colors flex-shrink-0"
+          aria-label="Edit prompt"
+        >
+          <Edit size={18} />
+        </button>
+      </div>
+      <p className="text-sm text-gray-600 mt-1">{prompt.desc}</p>
+    </div>
+  </div>
+);
+
+const MyPromptsScreen: React.FC<MyPromptsScreenProps> = ({ myPrompts, t, setScreen }) => {
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4">
+        <h1 className="text-2xl font-bold text-blue-600">👤 {t.my_prompts} ({myPrompts.length})</h1>
+      </div>
+      <div className="max-w-3xl mx-auto px-4 py-4">
+        {myPrompts.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-5xl mb-4">✍️</p>
+            <p className="text-gray-600">You haven't submitted any prompts yet.</p>
+            <p className="text-sm text-gray-500 mt-2">Click the 'Add' button below to share your first prompt!</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {myPrompts.map(p => (
+              <MyPromptCard key={p.id} prompt={p} onEdit={(id) => setScreen(`edit-${id}`)} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MyPromptsScreen;
+// --- END OF FILE: components/user/MyPromptsScreen.tsx ---
+
+
+
+// --- START OF FILE: components/user/UserProfileScreen.tsx ---
+import React, { useState } from 'react';
+import { User } from 'firebase/auth';
+import type { UserScreen } from '../../types';
+import { ChevronLeft, Mail, Calendar, FileText, Heart, Edit, Share2, Copy } from 'lucide-react';
+import AchievementBadge from './AchievementBadge';
+
+interface UserProfileScreenProps {
+  user: User;
+  myPromptsCount: number;
+  favoritesCount: number;
+  setScreen: (screen: UserScreen) => void;
+  onEditProfileClick: () => void;
+  t: { [key: string]: string };
+}
+
+const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: number }> = ({ icon, label, value }) => (
+  <div className="bg-gray-100/50 rounded-lg p-4 flex items-center gap-4">
+    <div className="bg-blue-100 text-blue-600 p-3 rounded-full">
+      {icon}
+    </div>
+    <div>
+      <p className="text-2xl font-bold text-gray-800">{value}</p>
+      <p className="text-sm text-gray-500">{label}</p>
+    </div>
+  </div>
+);
+
+const UserProfileScreen: React.FC<UserProfileScreenProps> = ({ user, myPromptsCount, favoritesCount, setScreen, onEditProfileClick, t }) => {
+  const [copied, setCopied] = useState(false);
+  
+  const creationDate = user.metadata.creationTime
+    ? new Date(user.metadata.creationTime).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : 'N/A';
+    
+  const referralLink = `${window.location.origin}${window.location.pathname}?ref=${user.uid}`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const displayName = user.displayName || user.email;
+
+  const achievements = [
+    {
+      icon: '🌱',
+      name: 'First Steps',
+      description: 'Submit your very first prompt!',
+      unlocked: myPromptsCount >= 1,
+    },
+    {
+      icon: '✍️',
+      name: 'Contributor',
+      description: 'Submit 5 prompts.',
+      unlocked: myPromptsCount >= 5,
+    },
+    {
+      icon: '🚀',
+      name: 'Prolific',
+      description: 'Submit 10 or more prompts.',
+      unlocked: myPromptsCount >= 10,
+    },
+    {
+      icon: '❤️',
+      name: 'Curator',
+      description: 'Favorite 5 prompts.',
+      unlocked: favoritesCount >= 5,
+    },
+    {
+      icon: '😍',
+      name: 'Super Fan',
+      description: 'Favorite 15 or more prompts.',
+      unlocked: favoritesCount >= 15,
+    },
+     {
+      icon: '👋',
+      name: 'Joined!',
+      description: 'Welcome to the community!',
+      unlocked: true,
+    },
+  ];
+
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4 flex items-center gap-4">
+        <button onClick={() => setScreen('settings')} className="text-gray-600 hover:text-blue-600">
+          <ChevronLeft size={24} />
+        </button>
+        <h1 className="text-2xl font-bold text-blue-600">My Profile</h1>
+      </div>
+      <div className="max-w-3xl mx-auto px-4 py-6">
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <div className="flex items-start gap-6">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold flex-shrink-0">
+              {displayName ? displayName.charAt(0).toUpperCase() : '?'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-800 break-words truncate">{displayName}</h2>
+                <button onClick={onEditProfileClick} className="ml-4 flex-shrink-0 bg-gray-200 text-gray-700 p-2 rounded-full hover:bg-gray-300 transition-colors">
+                    <Edit size={16} />
+                </button>
+              </div>
+              <div className="flex items-center gap-2 text-gray-500 mt-2">
+                <Mail size={16} />
+                <span className="text-sm truncate">{user.email}</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-500 mt-1">
+                <Calendar size={16} />
+                <span className="text-sm">Member since {creationDate}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <StatCard icon={<FileText size={24} />} label="Prompts Submitted" value={myPromptsCount} />
+          <StatCard icon={<Heart size={24} />} label="Favorites" value={favoritesCount} />
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">🏆 Achievements</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                {achievements.map(ach => (
+                    <AchievementBadge 
+                        key={ach.name}
+                        icon={ach.icon}
+                        name={ach.name}
+                        description={ach.description}
+                        unlocked={ach.unlocked}
+                    />
+                ))}
+            </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center gap-2 mb-4">
+                <Share2 className="text-purple-600" size={20} />
+                <h3 className="text-lg font-bold text-gray-800">Refer a Friend</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">Share this link with your friends to invite them to the app!</p>
+            <div className="flex gap-2 items-center bg-gray-100 rounded-lg p-2">
+                <input type="text" readOnly value={referralLink} className="bg-transparent w-full text-sm text-gray-700 outline-none" />
+                <button onClick={handleCopy} className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors flex items-center gap-1.5 ${copied ? 'bg-green-600 text-white' : 'bg-purple-600 text-white hover:bg-purple-700'}`}>
+                    <Copy size={14} />
+                    {copied ? 'Copied!' : 'Copy'}
+                </button>
+            </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default UserProfileScreen;
+// --- END OF FILE: components/user/UserProfileScreen.tsx ---
+
+
+
+// --- START OF FILE: components/user/AchievementBadge.tsx ---
+import React from 'react';
+
+interface AchievementBadgeProps {
+  icon: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+}
+
+const AchievementBadge: React.FC<AchievementBadgeProps> = ({ icon, name, description, unlocked }) => {
+  return (
+    <div className={`relative group flex flex-col items-center text-center p-2 transition-all duration-300 ${unlocked ? 'opacity-100' : 'opacity-30 grayscale'}`}>
+      <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-2 transition-all duration-300 ${unlocked ? 'bg-gradient-to-br from-yellow-300 to-orange-400 shadow-lg' : 'bg-gray-200'}`}>
+        {icon}
+      </div>
+      <p className="text-xs font-bold text-gray-700">{name}</p>
+      <div className="absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
+        {description}
+        <svg className="absolute text-gray-800 h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255">
+          <polygon className="fill-current" points="0,0 127.5,127.5 255,0"/>
+        </svg>
+      </div>
+    </div>
+  );
+};
+
+export default AchievementBadge;
+// --- END OF FILE: components/user/AchievementBadge.tsx ---
+
+
+
+// --- START OF FILE: components/user/EditPromptScreen.tsx ---
+import React, { useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
+import { CATEGORIES } from '../../constants';
+import type { Prompt, UserScreen } from '../../types';
+
+interface EditPromptScreenProps {
+  prompt: Prompt;
+  onUpdatePrompt: (promptId: string, updatedPrompt: Omit<Prompt, 'id' | 'rating' | 'approved' | 'author' | 'authorId'>) => void;
+  t: { [key: string]: string };
+  setScreen: (screen: UserScreen) => void;
+}
+
+const EditPromptScreen: React.FC<EditPromptScreenProps> = ({ prompt, onUpdatePrompt, t, setScreen }) => {
+  const [title, setTitle] = useState(prompt.title);
+  const [desc, setDesc] = useState(prompt.desc);
+  const [category, setCategory] = useState(prompt.category);
+  const [text, setText] = useState(prompt.text);
+  const [image, setImage] = useState(prompt.image);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !desc || !category || !text) {
+      alert('Please fill all fields');
+      return;
+    }
+    setIsUpdating(true);
+    onUpdatePrompt(prompt.id, { title, desc, category, text, image });
+  };
+
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4 flex items-center gap-4">
+        <button onClick={() => setScreen('myPrompts')} className="text-gray-600 hover:text-blue-600">
+          <ChevronLeft size={24} />
+        </button>
+        <h1 className="text-2xl font-bold text-blue-600">Edit Prompt</h1>
+      </div>
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-6 space-y-4">
+          <div>
+            <label htmlFor="title-edit" className="font-semibold text-sm text-gray-700">Title</label>
+            <input id="title-edit" type="text" placeholder="e.g., React Weather App" value={title} onChange={e => setTitle(e.target.value)} className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+          </div>
+          <div>
+            <label htmlFor="desc-edit" className="font-semibold text-sm text-gray-700">Short Description</label>
+            <textarea id="desc-edit" placeholder="e.g., A simple app to display weather." value={desc} onChange={e => setDesc(e.target.value)} className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows={2} required></textarea>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-grow">
+              <label htmlFor="category-edit" className="font-semibold text-sm text-gray-700">Category</label>
+              <select id="category-edit" value={category} onChange={e => setCategory(e.target.value)} className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+              </select>
+            </div>
+            <div>
+               <label htmlFor="image-edit" className="font-semibold text-sm text-gray-700">Icon</label>
+               <input id="image-edit" type="text" value={image} onChange={e => setImage(e.target.value)} className="w-20 text-center mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" maxLength={2} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label htmlFor="text-edit" className="font-semibold text-sm text-gray-700">Prompt Text</label>
+            </div>
+            <textarea id="text-edit" placeholder="The full text of your prompt..." value={text} onChange={e => setText(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows={6} required></textarea>
+          </div>
+          <button type="submit" disabled={isUpdating} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors disabled:bg-gray-400">
+            {isUpdating ? 'Saving...' : 'Save Changes'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default EditPromptScreen;
+// --- END OF FILE: components/user/EditPromptScreen.tsx ---
+
+
+
+// --- START OF FILE: components/common/PullToRefresh.tsx ---
+import React, { useState, useEffect, useCallback } from 'react';
+import { Loader } from 'lucide-react';
+
+const PULL_THRESHOLD = 80; // The distance in pixels to pull before a refresh is triggered
+const REFRESH_TIMEOUT = 1000; // How long to show the spinner before reloading
+
+const PullToRefresh: React.FC = () => {
+  const [pullStart, setPullStart] = useState<number | null>(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    // Only start tracking if we are at the top of the page
+    if (window.scrollY === 0) {
+      setPullStart(e.targetTouches[0].clientY);
+    } else {
+      setPullStart(null);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (pullStart === null) return;
+
+    const currentY = e.targetTouches[0].clientY;
+    const distance = currentY - pullStart;
+
+    if (distance > 0) {
+      // Prevent default scroll behavior while pulling down
+      e.preventDefault();
+      setPullDistance(distance);
+    }
+  }, [pullStart]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (pullDistance > PULL_THRESHOLD) {
+      setIsRefreshing(true);
+      // Wait for the animation to be visible, then reload
+      setTimeout(() => {
+        window.location.reload();
+      }, REFRESH_TIMEOUT);
+    } else {
+      // Not pulled far enough, reset
+      setPullStart(null);
+      setPullDistance(0);
+    }
+  }, [pullDistance]);
+
+  useEffect(() => {
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchmove', handleTouchMove, { passive: false }); // passive: false is needed for preventDefault
+    window.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+
+  const rotation = Math.min(pullDistance, PULL_THRESHOLD * 1.5);
+  const opacity = Math.min(pullDistance / PULL_THRESHOLD, 1);
+
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 h-16 flex items-center justify-center transition-transform duration-300 z-[99]"
+      style={{
+        transform: `translateY(${isRefreshing ? '0px' : Math.min(pullDistance / 2.5, PULL_THRESHOLD / 2.5) - 40}px)`,
+        opacity: isRefreshing ? 1 : opacity,
+      }}
+    >
+      <div className="bg-white rounded-full shadow-lg p-3">
+        <Loader
+          size={24}
+          className="text-blue-600 transition-transform"
+          style={{
+            transform: isRefreshing ? 'rotate(360deg)' : `rotate(${rotation}deg)`,
+            transition: isRefreshing ? 'transform 1s linear infinite' : 'none',
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default PullToRefresh;
+// --- END OF FILE: components/common/PullToRefresh.tsx ---
+
+
+
+// --- START OF FILE: components/user/AssistantScreen.tsx ---
+import React, { useState, useEffect, useRef } from 'react';
+import { GoogleGenAI, Chat, Modality } from "@google/genai";
+import { Send, Bot, Volume2, Copy, ThumbsUp, Check, Loader2 } from 'lucide-react';
+
+interface AssistantScreenProps {
+  t: { [key: string]: string };
+}
+
+type Message = {
+  role: 'user' | 'model';
+  text: string;
+  isSystem?: boolean;
+};
+
+// --- Audio Helper Functions ---
+function decode(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function decodeAudioData(
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number,
+  numChannels: number,
+): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
+// --- End Audio Helper Functions ---
+
+
+const AssistantScreen: React.FC<AssistantScreenProps> = ({ t }) => {
+  const [chat, setChat] = useState<Chat | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [likedMessages, setLikedMessages] = useState<Set<number>>(new Set());
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
+  const [isSpeechLoading, setIsSpeechLoading] = useState<number | null>(null);
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const currentAudioSource = useRef<AudioBufferSourceNode | null>(null);
+
+  useEffect(() => {
+    // Initialize Gemini Chat
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const newChat = ai.chats.create({
+      model: 'gemini-2.5-flash',
+      config: {
+        systemInstruction: "You are an expert AI assistant specializing in application development. Your goal is to provide clear, concise, and helpful answers to questions about how to build applications. Keep your responses short and to the point. Answer in the same language as the user's question.",
+      },
+    });
+    setChat(newChat);
+    setMessages([{ role: 'model', text: t.welcome_assistant }]);
+
+    // Initialize AudioContext
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    setAudioContext(ctx);
+
+    return () => {
+        if (currentAudioSource.current) {
+            currentAudioSource.current.stop();
+        }
+        ctx.close();
+    }
+  }, [t.welcome_assistant]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(scrollToBottom, [messages, loading]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || loading || !chat) return;
+
+    const userMessage: Message = { role: 'user', text: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const response = await chat.sendMessageStream({ message: input });
+      let modelResponse = '';
+      setMessages(prev => [...prev, { role: 'model', text: '' }]);
+
+      for await (const chunk of response) {
+        modelResponse += chunk.text;
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1].text = modelResponse;
+          return newMessages;
+        });
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setMessages(prev => [...prev, { role: 'model', text: 'Sorry, something went wrong. Please try again.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleCopy = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const handleSpeak = async (text: string, index: number) => {
+    if (currentAudioSource.current) {
+      currentAudioSource.current.stop();
+      currentAudioSource.current = null;
+    }
+
+    if (speakingIndex === index) {
+      setSpeakingIndex(null);
+      return;
+    }
+    
+    if (!audioContext) return;
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+
+    setIsSpeechLoading(index);
+    setSpeakingIndex(null);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-preview-tts",
+        contents: [{ parts: [{ text }] }],
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: {
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
+          },
+        },
+      });
+      
+      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (base64Audio) {
+        const audioBytes = decode(base64Audio);
+        const audioBuffer = await decodeAudioData(audioBytes, audioContext, 24000, 1);
+        
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        
+        source.onended = () => {
+          setSpeakingIndex(null);
+          currentAudioSource.current = null;
+        };
+        
+        source.start();
+        currentAudioSource.current = source;
+        setSpeakingIndex(index);
+      }
+    } catch (err) {
+      console.error("Error generating speech:", err);
+      alert("Sorry, could not generate audio.");
+    } finally {
+      setIsSpeechLoading(null);
+    }
+  };
+
+  const handleLike = (index: number) => {
+    setLikedMessages(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(index)) {
+            newSet.delete(index);
+        } else {
+            newSet.add(index);
+            setTimeout(() => {
+                 setMessages(currentMessages => [...currentMessages, { role: 'model', text: 'Thank you 😘', isSystem: true }]);
+            }, 300);
+        }
+        return newSet;
+    });
+  };
+
+  const TypingIndicator = () => (
+    <div className="flex items-start gap-3">
+        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+          <Bot size={24} className="text-gray-600" />
+        </div>
+        <div className="bg-gray-200 rounded-2xl p-3 flex items-center gap-2 rounded-bl-none">
+            <span className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0s' }}></span>
+            <span className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
+            <span className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
+        </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="bg-white shadow-md p-4">
+        <h1 className="text-2xl font-bold text-purple-600">🤖 {t.assistant}</h1>
+      </div>
+      
+      <div className="w-full max-w-3xl mx-auto px-4 py-4">
+        <div className="space-y-4 mb-6">
+          {messages.map((msg, index) => (
+            <div key={index} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+              <div className={`flex items-start gap-3 w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.role === 'model' && (
+                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Bot size={24} className="text-gray-600" />
+                    </div>
+                  )}
+                  <div className={`rounded-2xl p-3 whitespace-pre-wrap max-w-lg ${msg.role === 'user' ? 'bg-blue-500 text-white rounded-br-none' : 'bg-gray-200 text-gray-800 rounded-bl-none'}`}>
+                    {msg.text}
+                  </div>
+              </div>
+              {msg.role === 'model' && msg.text && !msg.isSystem && (
+                <div className="flex items-center gap-3 mt-2" style={{ paddingLeft: '52px' }}>
+                    <button onClick={() => handleCopy(msg.text, index)} className="text-gray-500 hover:text-blue-600 transition-colors" title="Copy">
+                        {copiedIndex === index ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
+                    </button>
+                    <button onClick={() => handleSpeak(msg.text, index)} className="text-gray-500 hover:text-blue-600 transition-colors w-5 h-5 flex items-center justify-center" title="Speak">
+                        {isSpeechLoading === index ? <Loader2 size={18} className="animate-spin" /> : <Volume2 size={18} className={speakingIndex === index ? 'text-blue-600 animate-pulse' : ''} />}
+                    </button>
+                    <button onClick={() => handleLike(index)} className="text-gray-500 hover:text-blue-600 transition-colors" title="Like">
+                        <ThumbsUp size={18} className={likedMessages.has(index) ? 'text-blue-600 fill-blue-200' : ''} />
+                    </button>
+                </div>
+              )}
+            </div>
+          ))}
+          {loading && <TypingIndicator />}
+        </div>
+        <div ref={messagesEndRef} />
+        <form onSubmit={handleSendMessage} className="flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={t.ask_anything_dev}
+            className="flex-grow px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={loading}
+          />
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+            aria-label="Send message"
+          >
+            <Send size={20} />
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default AssistantScreen;
+// --- END OF FILE: components/user/AssistantScreen.tsx ---
